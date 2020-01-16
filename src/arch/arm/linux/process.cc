@@ -678,7 +678,7 @@ static SyscallDesc syscallDescs64[] = {
     /*  129 */ SyscallDesc("kill", ignoreFunc),
     /*  130 */ SyscallDesc("tkill", unimplementedFunc),
     /*  131 */ SyscallDesc("tgkill", tgkillFunc<ArmLinux64>),
-    /*  132 */ SyscallDesc("sigaltstack", unimplementedFunc),
+    /*  132 */ SyscallDesc("sigaltstack", ignoreFunc),
     /*  133 */ SyscallDesc("rt_sigsuspend", unimplementedFunc),
     /*  134 */ SyscallDesc("rt_sigaction", ignoreFunc),
     /*  135 */ SyscallDesc("rt_sigprocmask", ignoreWarnOnceFunc),

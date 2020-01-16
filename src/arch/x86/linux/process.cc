@@ -393,7 +393,7 @@ static SyscallDesc syscallDescs64[] = {
     /* 128 */ SyscallDesc("rt_sigtimedwait", unimplementedFunc),
     /* 129 */ SyscallDesc("rt_sigqueueinfo", unimplementedFunc),
     /* 130 */ SyscallDesc("rt_sigsuspend", unimplementedFunc),
-    /* 131 */ SyscallDesc("sigaltstack", unimplementedFunc),
+    /* 131 */ SyscallDesc("sigaltstack", ignoreFunc),
     /* 132 */ SyscallDesc("utime", unimplementedFunc),
     /* 133 */ SyscallDesc("mknod", mknodFunc),
     /* 134 */ SyscallDesc("uselib", unimplementedFunc),

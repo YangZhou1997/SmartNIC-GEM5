@@ -202,7 +202,7 @@ SyscallDesc MipsLinuxProcess::syscallDescs[] = {
     /* 30 */ SyscallDesc("utime", unimplementedFunc),
     /* 31 */ SyscallDesc("stty", unimplementedFunc),
     /* 32 */ SyscallDesc("gtty", unimplementedFunc),
-    /* 33 */ SyscallDesc("access", unimplementedFunc),
+    /* 33 */ SyscallDesc("access", ignoreFunc),
     /* 34 */ SyscallDesc("nice", unimplementedFunc),
     /* 35 */ SyscallDesc("ftime", unimplementedFunc),
     /* 36 */ SyscallDesc("sync", unimplementedFunc),

@@ -1,0 +1,16 @@
+gem5 Simulator System.  http://gem5.org
+gem5 is copyrighted software; use the --copyright option for details.
+
+gem5 compiled Jan 20 2020 13:24:00
+gem5 started Jan 20 2020 13:31:47
+gem5 executing on node-0.yangzhou-qv63200.lambda-mpi-pg0.clemson.cloudlab.us, pid 141278
+command line: build/ARM/gem5.fast --remote-gdb-port=0 --outdir=/users/yangzhou/gem5/sim_nic/m5out/nic --stats-file=HPI_DDR3_1600_8x8_acl-fw_1MB_stats.txt configs/example/se_nic.py --interp-dir /usr/aarch64-linux-gnu --redirects /lib=/usr/aarch64-linux-gnu/lib -c acl-fw --cpu-type=HPI --cpu-clock=2.4GHz --asic-clock=0.56GHz --cacheline_size=128 --caches --l2cache --l2_size=1MB --l2_assoc=16 --mem-size=128GB --mem-type=DDR3_1600_8x8 --mem-channels=2 --mem-ranks=2
+
+['acl-fw']
+{'acl-fw': [0]} 1 1
+Setting the interpreter path to: /usr/aarch64-linux-gnu 
+For dynamically linked applications you might still need to setup the --redirects so that libraries are found
+
+Global frequency set at 1000000000000 ticks per second
+**** REAL SIMULATION ****
+Exiting @ tick 0 because user interrupt received

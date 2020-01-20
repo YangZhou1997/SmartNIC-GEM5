@@ -245,7 +245,10 @@ class BaseCPU(ClockedObject):
                 self._cached_ports += ["itb_walker_cache.mem_side", \
                                        "dtb_walker_cache.mem_side"]
             else:
-                self._cached_ports += ["itb.walker.port", "dtb.walker.port"]
+                if l1_connect_flag: 
+                    self._cached_ports += ["itb.walker.port", "dtb.walker.port"]
+                else:
+                    self._cached_ports = []
 
             # Checker doesn't need its own tlb caches because it does
             # functional accesses only

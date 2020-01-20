@@ -68,10 +68,16 @@ from common.FileSystemConfig import config_filesystem
 from common.Caches import *
 from common.cpu2000 import *
 
+DPI_THREAD_NUM = 16
+BASE_DIR = '/users/yangzhou/NetBricks-GEM5/target/aarch64-unknown-linux-gnu/release/'
+NFS = ['acl-fw', 'dpi', 'nat-tcp-v4', 'maglev', 'lpm', 'monitoring']
+
 def get_processes(options):
     """Interprets provided options and returns a list of processes"""
 
-    multiprocesses = []
+    nf_core_mapping = {}
+    multiprocesses = {}
+
     inputs = []
     outputs = []
     errouts = []
@@ -91,7 +97,7 @@ def get_processes(options):
     idx = 0
     for wrkld in workloads:
         process = Process(pid = 100 + idx)
-        process.executable = wrkld
+        process.executable = BASE_DIR + wrkld
         process.cwd = os.getcwd()
 
         if options.env:
@@ -110,197 +116,104 @@ def get_processes(options):
         if len(errouts) > idx:
             process.errout = errouts[idx]
 
-        multiprocesses.append(process)
-        idx += 1
+        multiprocesses[wrkld] = process
 
-    if options.smt:
-        assert(options.cpu_type == "DerivO3CPU")
-        return multiprocesses, idx
-    else:
-        return multiprocesses, 1
+        if wrkld == 'dpi':
+            core_set = [i for i in range(idx, idx + DPI_THREAD_NUM + 1)]
+            idx += DPI_THREAD_NUM + 1
+        else:
+            core_set = [i for i in range(idx, idx + 1)]
+            idx += 1
+        nf_core_mapping[wrkld] = core_set
+
+    return nf_core_mapping, multiprocesses, idx
 
 
 parser = optparse.OptionParser()
+Options.addCommonOptions(parser)
+Options.addSEOptions(parser)
 parser.add_option("--asic-clock", action="store", type="string",
                       default='10GHz',
                       help = """Clock for blocks running at ASIC speed""")
 
-Options.addCommonOptions(parser)
-Options.addSEOptions(parser)
-
-if '--ruby' in sys.argv:
-    Ruby.define_options(parser)
-
 (options, args) = parser.parse_args()
+
+options.l1d_size="32kB"
+options.l1d_assoc=32
+options.l1i_size="78kB"
+options.l1i_assoc=39
 
 if args:
     print("Error: script doesn't take any positional arguments")
     sys.exit(1)
 
-multiprocesses = []
-numThreads = 1
+nf_core_mapping = {}
+multiprocesses = {}
+num_cores = 0
 
-if options.bench:
-    apps = options.bench.split("-")
-    if len(apps) != options.num_cpus:
-        print("number of benchmarks not equal to set num_cpus!")
-        sys.exit(1)
-
-    for app in apps:
-        try:
-            if buildEnv['TARGET_ISA'] == 'alpha':
-                exec("workload = %s('alpha', 'tru64', '%s')" % (
-                        app, options.spec_input))
-            elif buildEnv['TARGET_ISA'] == 'arm':
-                exec("workload = %s('arm_%s', 'linux', '%s')" % (
-                        app, options.arm_iset, options.spec_input))
-            else:
-                exec("workload = %s(buildEnv['TARGET_ISA', 'linux', '%s')" % (
-                        app, options.spec_input))
-            multiprocesses.append(workload.makeProcess())
-        except:
-            print("Unable to find workload for %s: %s" %
-                  (buildEnv['TARGET_ISA'], app),
-                  file=sys.stderr)
-            sys.exit(1)
-elif options.cmd:
-    multiprocesses, numThreads = get_processes(options)
-    print(len(multiprocesses), numThreads)
+if options.cmd:
+    nf_core_mapping, multiprocesses, num_cores = get_processes(options)
+    print(nf_core_mapping, len(multiprocesses), num_cores)
+    options.num_cpus = num_cores
 else:
     print("No workload specified. Exiting!\n", file=sys.stderr)
     sys.exit(1)
 
-# options.l1d_size="32kB"
-# options.l1d_assoc=32
-# options.l1i_size="78kB"
-# options.l1i_assoc=39
-# options.l2_size="4MB"
-# options.l2_assoc=16
-
 (CPUClass, test_mem_mode, FutureClass) = Simulation.setCPUClass(options)
-CPUClass.numThreads = numThreads
+CPUClass.numThreads = 1
 
-# Check -- do not allow SMT with multiple CPUs
-if options.smt and options.num_cpus > 1:
-    fatal("You cannot use SMT with multiple CPUs!")
-
-np = options.num_cpus
-system = System(cpu = [CPUClass(cpu_id=i) for i in range(np)],
+system = System(cpu = [CPUClass(cpu_id=i) for i in range(num_cores)],
                 mem_mode = test_mem_mode,
                 mem_ranges = [AddrRange(options.mem_size)],
                 cache_line_size = options.cacheline_size)
 
-if numThreads > 1:
-    system.multi_thread = True
-
 # Create a top-level voltage domain
 system.voltage_domain = VoltageDomain(voltage = options.sys_voltage)
-
 # Create a source clock for the system and set the clock period
-system.clk_domain = SrcClockDomain(clock =  options.sys_clock,
-                                   voltage_domain = system.voltage_domain)
-
+system.clk_domain = SrcClockDomain(clock =  options.sys_clock, voltage_domain = system.voltage_domain)
 # Create a CPU voltage domain
 system.cpu_voltage_domain = VoltageDomain()
-
 # Create a separate clock domain for the CPUs
-system.cpu_clk_domain = SrcClockDomain(clock = options.cpu_clock,
-                                       voltage_domain =
-                                       system.cpu_voltage_domain)
+system.cpu_clk_domain = SrcClockDomain(clock = options.cpu_clock, voltage_domain = system.cpu_voltage_domain)
+# Create a separate clock domain for the accelerators
+asic_clk_domain = SrcClockDomain(clock = options.asic_clock, voltage_domain = system.cpu_voltage_domain)
 
-# If elastic tracing is enabled, then configure the cpu and attach the elastic
-# trace probe
-if options.elastic_trace_en:
-    CpuConfig.config_etrace(CPUClass, system.cpu, options)
+for nf in NFS:
+    if nf in nf_core_mapping and nf in multiprocesses:
+        core_set = nf_core_mapping[nf]
+        process = multiprocesses[nf]
+        for i, core_id in enumerate(core_set):
+            if i == 0:
+                system.cpu[core_id].clk_domain = system.cpu_clk_domain
+            else:
+                system.cpu[core_id].clk_domain = asic_clk_domain        
+            system.cpu[core_id].workload = process
+            system.cpu[core_id].createThreads()
 
-# All cpus belong to a common cpu_clk_domain, therefore running at a common
-# frequency.
-# for cpu in system.cpu:
-#     cpu.clk_domain = system.cpu_clk_domain
-
-asic_clk_domain = SrcClockDomain(clock = options.asic_clock,
-                           voltage_domain =
-                           system.cpu_voltage_domain)
-
-system.cpu[0].clk_domain = system.cpu_clk_domain
-system.cpu[1].clk_domain = asic_clk_domain
-
-
-if ObjectList.is_kvm_cpu(CPUClass) or ObjectList.is_kvm_cpu(FutureClass):
-    if buildEnv['TARGET_ISA'] == 'x86':
-        system.kvm_vm = KvmVM()
-        for process in multiprocesses:
-            process.useArchPT = True
-            process.kvmInSE = True
-    else:
-        fatal("KvmCPU can only be used in SE mode with x86")
-
-# Sanity check
-if options.simpoint_profile:
-    if not ObjectList.is_noncaching_cpu(CPUClass):
-        fatal("SimPoint/BPProbe should be done with an atomic cpu")
-    if np > 1:
-        fatal("SimPoint generation not supported with more than one CPUs")
-
-for i in range(np):
-    if options.smt:
-        system.cpu[i].workload = multiprocesses
-    elif len(multiprocesses) == 1:
-        system.cpu[i].workload = multiprocesses[0]
-    else:
-        if i in [0, 1]:
-            system.cpu[i].workload = multiprocesses[0]
-        elif i in [2, ]:
-            system.cpu[i].workload = multiprocesses[1]
-
-
-    if options.simpoint_profile:
-        system.cpu[i].addSimPointProbe(options.simpoint_interval)
-
-    if options.checker:
-        system.cpu[i].addCheckerCpu()
-
-    if options.bp_type:
-        bpClass = ObjectList.bp_list.get(options.bp_type)
-        system.cpu[i].branchPred = bpClass()
-
-    if options.indirect_bp_type:
-        indirectBPClass = \
-            ObjectList.indirect_bp_list.get(options.indirect_bp_type)
-        system.cpu[i].branchPred.indirectBranchPred = indirectBPClass()
-
-    system.cpu[i].createThreads()
-
-if options.ruby:
-    Ruby.create_system(options, False, system)
-    assert(options.num_cpus == len(system.ruby._cpu_ports))
-
-    system.ruby.clk_domain = SrcClockDomain(clock = options.ruby_clock,
-                                        voltage_domain = system.voltage_domain)
-    for i in range(np):
-        ruby_port = system.ruby._cpu_ports[i]
-
-        # Create the interrupt controller and connect its ports to Ruby
-        # Note that the interrupt controller is always present but only
-        # in x86 does it have message ports that need to be connected
-        system.cpu[i].createInterruptController()
-
-        # Connect the cpu's cache ports to Ruby
-        system.cpu[i].icache_port = ruby_port.slave
-        system.cpu[i].dcache_port = ruby_port.slave
-        if buildEnv['TARGET_ISA'] == 'x86':
-            system.cpu[i].interrupts[0].pio = ruby_port.master
-            system.cpu[i].interrupts[0].int_master = ruby_port.slave
-            system.cpu[i].interrupts[0].int_slave = ruby_port.master
-            system.cpu[i].itb.walker.port = ruby_port.slave
-            system.cpu[i].dtb.walker.port = ruby_port.slave
+# use classic memory model. 
+MemClass = Simulation.setMemClass(options)
+system.membus = SystemXBar()
+system.system_port = system.membus.slave
+if 'dpi' in nf_core_mapping:
+    CacheConfig.config_cache(options, system, nf_core_mapping['dpi'][1:])
 else:
-    MemClass = Simulation.setMemClass(options)
-    system.membus = SystemXBar()
-    system.system_port = system.membus.slave
     CacheConfig.config_cache(options, system)
-    MemConfig.config_mem(options, system)
-    config_filesystem(system, options)
+MemConfig.config_mem(options, system)
+config_filesystem(system, options)
+
+# reconfig the dpi hardware thread l1 dcache to make it connect to the memory bus directly;
+if 'dpi' in nf_core_mapping:
+    core_set = nf_core_mapping['dpi']
+    for i, core_id in enumerate(core_set):
+        if i == 0:
+            continue
+        system.cpu[core_id].icache.mem_side = system.membus.slave
+        system.cpu[core_id].dcache.mem_side = system.membus.slave
+        # print(system.cpu[core_id].icache.mem_side, system.cpu[core_id].dcache.mem_side)
+        system.cpu[core_id].dcache.size = "8kB"
+        system.cpu[core_id].dcache.assoc = 1
+# import sys
+# sys.exit()
 
 root = Root(full_system = False, system = system)
 Simulation.run(options, root, system, FutureClass)

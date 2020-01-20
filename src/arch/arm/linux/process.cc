@@ -355,7 +355,7 @@ static SyscallDesc syscallDescs32[] = {
     /* 183 */ SyscallDesc("getcwd", getcwdFunc),
     /* 184 */ SyscallDesc("capget", unimplementedFunc),
     /* 185 */ SyscallDesc("capset", unimplementedFunc),
-    /* 186 */ SyscallDesc("sigaltstack", unimplementedFunc),
+    /* 186 */ SyscallDesc("sigaltstack", ignoreFunc),
     /* 187 */ SyscallDesc("sendfile", unimplementedFunc),
     /* 188 */ SyscallDesc("unused#188", unimplementedFunc),
     /* 189 */ SyscallDesc("unused#189", unimplementedFunc),

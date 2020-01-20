@@ -421,7 +421,7 @@ SyscallDesc MipsLinuxProcess::syscallDescs[] = {
     /* 249 */ SyscallDesc("epoll_ctl", unimplementedFunc),
     /* 250 */ SyscallDesc("epoll_wait", unimplementedFunc),
     /* 251 */ SyscallDesc("remap_file_pages", unimplementedFunc),
-    /* 252 */ SyscallDesc("set_tid_address", unimplementedFunc),
+    /* 252 */ SyscallDesc("set_tid_address", ignoreFunc),
     /* 253 */ SyscallDesc("restart_syscall", unimplementedFunc),
     /* 254 */ SyscallDesc("fadvise64", unimplementedFunc),
     /* 255 */ SyscallDesc("statfs64", unimplementedFunc),

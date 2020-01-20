@@ -226,12 +226,16 @@ class BaseCPU(ClockedObject):
             uncached_bus = cached_bus
         self.connectUncachedPorts(uncached_bus)
 
-    def addPrivateSplitL1Caches(self, ic, dc, iwc = None, dwc = None):
+# Changed by Yang: 
+    def addPrivateSplitL1Caches(self, ic, dc, iwc = None, dwc = None, l1_connect_flag = True):
         self.icache = ic
         self.dcache = dc
         self.icache_port = ic.cpu_side
         self.dcache_port = dc.cpu_side
-        self._cached_ports = ['icache.mem_side', 'dcache.mem_side']
+        if l1_connect_flag: 
+            self._cached_ports = ['icache.mem_side', 'dcache.mem_side']
+        else:
+            self._cached_ports = []
         if buildEnv['TARGET_ISA'] in ['x86', 'arm']:
             if iwc and dwc:
                 self.itb_walker_cache = iwc

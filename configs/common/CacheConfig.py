@@ -49,7 +49,7 @@ from m5.objects import *
 from .Caches import *
 from common import ObjectList
 
-def config_cache(options, system):
+def config_cache(options, system, l1_not_connect_cores = []):
     if options.external_memory_system and (options.caches or options.l2cache):
         print("External caches and internal caches are exclusive options.\n")
         sys.exit(1)
@@ -166,10 +166,14 @@ def config_cache(options, system):
                           "specified by the flag option.")
                 icache.prefetcher = hwpClass()
 
+            # Changed by Yang: 
             # When connecting the caches, the clock is also inherited
             # from the CPU in question
-            system.cpu[i].addPrivateSplitL1Caches(icache, dcache,
-                                                  iwalkcache, dwalkcache)
+            if i in l1_not_connect_cores:
+                system.cpu[i].addPrivateSplitL1Caches(icache, dcache, iwalkcache, dwalkcache, l1_connect_flag=False)
+            else:
+                system.cpu[i].addPrivateSplitL1Caches(icache, dcache, iwalkcache, dwalkcache, l1_connect_flag=True)
+
 
             if options.memchecker:
                 # The mem_side ports of the caches haven't been connected yet.

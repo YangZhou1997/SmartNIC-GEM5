@@ -63,6 +63,10 @@ cpus = ['TimingSimpleCPU', 'DerivO3CPU']
 # Small gain beyond half cache: gcc h264ref gobmk hmmer sjeng
 
 mem_size = '128GB'
+# 1308843841: the number of ins spent on loading traces
+fast_forward_ins = 1308843841
+# 6858629570: the number of ins spent on loading traces and dpi processing 1M packets. 
+maxinsts = 6858629570 - fast_forward_ins
 
 singleprog = nfinvoke
 multiprog = []
@@ -114,14 +118,18 @@ if not os.path.exists("stderr/" + folder):
 
 l2_size = ['4MB', '2MB', '1MB', '512kB', '256kB']
 
+tick_base = 1000000000000
+ticks = [4, 44]
+
 all_commands = []
 
 def cache_partition():
     for cpu in cpus:
+        for tick in ticks:
             for nf in singleprog:
                 cmd = nf
                 for l2 in l2_size:
-                    filename = f'{cpu}_{cmd}_{l2}'                    
+                    filename = f'{cpu}_{cmd}_{l2}_{tick}'                    
                     temp = filename.replace(';', '.')
                     bash_filename = f'{scriptgen_dir}/run_{temp}.sh'
                     script = open(bash_filename, "w")
@@ -129,7 +137,7 @@ def cache_partition():
                     command += "build/ARM/gem5.fast \\\n"
                     command += "    --remote-gdb-port=0 \\\n"
                     command += "    --outdir=/users/yangzhou/gem5/sgx_nic/m5out/" + folder + " \\\n"
-                    command += "    --stats-file=" + filename + "_stats.txt \\\n"
+                    command += "    --stats-file=" + temp + "_stats.txt \\\n"
                     command += "    configs/example/se_nic.py \\\n"
                     command += "    --interp-dir /usr/aarch64-linux-gnu \\\n"
                     command += "    --redirects /lib=/usr/aarch64-linux-gnu/lib \\\n"
@@ -139,21 +147,23 @@ def cache_partition():
                     command += "    --caches --l2cache \\\n"
                     command += "    --l2_size=" + l2 + " --l2_assoc=16 \\\n"
                     command += "    --mem-size=" + mem_size + " --mem-type=DDR3_1600_8x8" + " --mem-channels=2 --mem-ranks=2 \\\n"
-                    command += "    > " + results_dir + "/" + folder + "/stdout_" + filename + ".out \\\n"
-                    command += "    2> " + stderr_dir + "/" + folder + "/stderr_" + filename + ".out"
+                    command += "    --abs-max-tick=" + str(tick_base * tick) + " \\\n"
+                    command += "    > " + results_dir + "/" + folder + "/stdout_" + temp + ".out \\\n"
+                    command += "    2> " + stderr_dir + "/" + folder + "/stderr_" + temp + ".out"
         
                     script.write(f'{command}\n')
                     script.close()
 
                     os.system(f'chmod +x {bash_filename}')
                     # os.system(f'bash {bash_filename}')
-                    all_commands.append(f'bash {bash_filename}')
+                    all_commands.append(f'cd .. && bash {bash_filename}')
 
 def bus_arbitor():
     for cpu in cpus:
+        for tick in ticks:
             for nf_set in multiprog:
                 cmd = prog_set_to_cmd(nf_set)
-                filename = f'{cpu}_{cmd}'        
+                filename = f'{cpu}_{cmd}_4MB_{tick}'        
                 temp = filename.replace(';', '.')            
                 bash_filename = f'{scriptgen_dir}/run_{temp}.sh'                    
                 script = open(bash_filename, "w")
@@ -161,7 +171,7 @@ def bus_arbitor():
                 command += "build/ARM/gem5.fast \\\n"
                 command += "    --remote-gdb-port=0 \\\n"
                 command += "    --outdir=/users/yangzhou/gem5/sgx_nic/m5out/" + folder + " \\\n"
-                command += "    --stats-file=" + filename + "_stats.txt \\\n"
+                command += "    --stats-file=" + temp + "_stats.txt \\\n"
                 command += "    configs/example/se_nic.py \\\n"
                 command += "    --interp-dir /usr/aarch64-linux-gnu \\\n"
                 command += "    --redirects /lib=/usr/aarch64-linux-gnu/lib \\\n"
@@ -171,15 +181,16 @@ def bus_arbitor():
                 command += "    --caches --l2cache \\\n"
                 command += "    --l2_size=4MB --l2_assoc=16 \\\n"
                 command += "    --mem-size=" + mem_size + " --mem-type=DDR3_1600_8x8" + " --mem-channels=2 --mem-ranks=2 \\\n"
-                command += "    > " + results_dir + "/" + folder + "/stdout_" + filename + ".out"
-                command += "    2> " + stderr_dir + "/" + folder + "/stderr_" + filename + ".out"
+                command += "    --abs-max-tick=" + str(tick_base * tick) + " \\\n"
+                command += "    > " + results_dir + "/" + folder + "/stdout_" + temp + ".out \\\n"
+                command += "    2> " + stderr_dir + "/" + folder + "/stderr_" + temp + ".out"
     
                 script.write(f'{command}\n')
                 script.close()
 
                 os.system(f'chmod +x {bash_filename}')
                 # os.system(f'bash {bash_filename}')
-                all_commands.append(f'bash {bash_filename}')
+                all_commands.append(f'cd .. && bash {bash_filename}')
 
 def exe_gem5_sim(cmd_line):
     print(threading.currentThread().getName())
@@ -203,5 +214,6 @@ if __name__ == "__main__":
     cache_partition()
     bus_arbitor()
     print(f'The number of gem5 simulations is {len(all_commands)}')
+    # print(all_commands)
 
     

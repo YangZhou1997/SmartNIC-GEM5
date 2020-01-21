@@ -197,7 +197,7 @@ if __name__ == "__main__":
     num_cmd = len(all_commands)
     print(f'The number of gem5 simulations is {num_cmd}')
     num_par = int(num_cmd / 4) + 1
-    # run_gem5_sim(all_commands[0:num_par])
+    run_gem5_sim(all_commands[0:num_par])
     # run_gem5_sim(all_commands[num_par:num_par * 2])
     # run_gem5_sim(all_commands[num_par * 2:num_par * 3])
-    run_gem5_sim(all_commands[num_par * 3:])
+    # run_gem5_sim(all_commands[num_par * 3:])

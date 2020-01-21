@@ -65,7 +65,7 @@ cpus = ['TimingSimpleCPU', 'DerivO3CPU']
 mem_size = '128GB'
 # 1308843841: the number of ins spent on loading traces
 fast_forward_ins = 1308843841
-# 6858629570: the number of ins spent on loading traces and dpi processing 1M packets. 
+# 6858629570: the number of ins spent on loading traces and dpi processing 1M packets.
 maxinsts = 6858629570 - fast_forward_ins
 
 singleprog = nfinvoke
@@ -99,23 +99,6 @@ if not os.path.exists(stdout_dir):
 if not os.path.exists(stderr_dir):
     os.makedirs(stderr_dir)
 
-if len(sys.argv) > 1:
-    folder = sys.argv[1]
-else:
-    folder = "nic"
-
-if not os.path.exists("m5out/" + folder):
-    os.makedirs("m5out/" + folder)
-
-if not os.path.exists("results/" + folder):
-    os.makedirs("results/" + folder)
-
-if not os.path.exists("stdout/" + folder):
-    os.makedirs("stdout/" + folder)
-
-if not os.path.exists("stderr/" + folder):
-    os.makedirs("stderr/" + folder)
-
 l2_size = ['4MB', '2MB', '1MB', '512kB', '256kB']
 
 tick_base = 1000000000000
@@ -129,14 +112,14 @@ def cache_partition():
             for nf in singleprog:
                 cmd = nf
                 for l2 in l2_size:
-                    filename = f'{cpu}_{cmd}_{l2}_{tick}'                    
+                    filename = f'{cpu}_{cmd}_{l2}_{tick}'
                     temp = filename.replace(';', '.')
                     bash_filename = f'{scriptgen_dir}/run_{temp}.sh'
                     script = open(bash_filename, "w")
                     command = "#!/bin/bash\n"
                     command += "build/ARM/gem5.fast \\\n"
                     command += "    --remote-gdb-port=0 \\\n"
-                    command += "    --outdir=/users/yangzhou/gem5/sgx_nic/m5out/" + folder + " \\\n"
+                    command += "    --outdir=/users/yangzhou/gem5/sgx_nic/m5out/" + temp + " \\\n"
                     command += "    --stats-file=" + temp + "_stats.txt \\\n"
                     command += "    configs/example/se_nic.py \\\n"
                     command += "    --interp-dir /usr/aarch64-linux-gnu \\\n"
@@ -148,9 +131,9 @@ def cache_partition():
                     command += "    --l2_size=" + l2 + " --l2_assoc=16 \\\n"
                     command += "    --mem-size=" + mem_size + " --mem-type=DDR3_1600_8x8" + " --mem-channels=2 --mem-ranks=2 \\\n"
                     command += "    --abs-max-tick=" + str(tick_base * tick) + " \\\n"
-                    command += "    > " + results_dir + "/" + folder + "/stdout_" + temp + ".out \\\n"
-                    command += "    2> " + stderr_dir + "/" + folder + "/stderr_" + temp + ".out"
-        
+                    command += "    > " + results_dir + "/stdout_" + temp + ".out \\\n"
+                    command += "    2> " + stderr_dir + "/stderr_" + temp + ".out"
+
                     script.write(f'{command}\n')
                     script.close()
 
@@ -163,14 +146,14 @@ def bus_arbitor():
         for tick in ticks:
             for nf_set in multiprog:
                 cmd = prog_set_to_cmd(nf_set)
-                filename = f'{cpu}_{cmd}_4MB_{tick}'        
-                temp = filename.replace(';', '.')            
-                bash_filename = f'{scriptgen_dir}/run_{temp}.sh'                    
+                filename = f'{cpu}_{cmd}_4MB_{tick}'
+                temp = filename.replace(';', '.')
+                bash_filename = f'{scriptgen_dir}/run_{temp}.sh'
                 script = open(bash_filename, "w")
                 command = "#!/bin/bash\n"
                 command += "build/ARM/gem5.fast \\\n"
                 command += "    --remote-gdb-port=0 \\\n"
-                command += "    --outdir=/users/yangzhou/gem5/sgx_nic/m5out/" + folder + " \\\n"
+                command += "    --outdir=/users/yangzhou/gem5/sgx_nic/m5out/" + temp + " \\\n"
                 command += "    --stats-file=" + temp + "_stats.txt \\\n"
                 command += "    configs/example/se_nic.py \\\n"
                 command += "    --interp-dir /usr/aarch64-linux-gnu \\\n"
@@ -182,9 +165,9 @@ def bus_arbitor():
                 command += "    --l2_size=4MB --l2_assoc=16 \\\n"
                 command += "    --mem-size=" + mem_size + " --mem-type=DDR3_1600_8x8" + " --mem-channels=2 --mem-ranks=2 \\\n"
                 command += "    --abs-max-tick=" + str(tick_base * tick) + " \\\n"
-                command += "    > " + results_dir + "/" + folder + "/stdout_" + temp + ".out \\\n"
-                command += "    2> " + stderr_dir + "/" + folder + "/stderr_" + temp + ".out"
-    
+                command += "    > " + results_dir + "/stdout_" + temp + ".out \\\n"
+                command += "    2> " + stderr_dir + "/stderr_" + temp + ".out"
+
                 script.write(f'{command}\n')
                 script.close()
 
@@ -193,18 +176,18 @@ def bus_arbitor():
                 all_commands.append(f'cd .. && bash {bash_filename}')
 
 def exe_gem5_sim(cmd_line):
-    print(threading.currentThread().getName())
-    print(cmd_line)
     try:
-        os.system(cmd_line)
-        return cmd_line + " ok"
+        os.popen(cmd_line).read()
+        print(f'{threading.currentThread().getName()} okay: {cmd_line}')
+        return f'okay: {cmd_line}'
     except Exception:
-        return cmd_line + " fails"
+        print(f'{threading.currentThread().getName()} fails: {cmd_line}')
+        return f'fails: {cmd_line}'
 
-def run_gem5_sim():    
-    # 1 thread is left. 
+def run_gem5_sim(commands):
+    # 1 thread is left.
     pool = ThreadPool(55)
-    results = pool.map(exe_gem5_sim, all_commands)
+    results = pool.map(exe_gem5_sim, commands)
     pool.close()
     pool.join()
     for res in results:
@@ -213,7 +196,10 @@ def run_gem5_sim():
 if __name__ == "__main__":
     cache_partition()
     bus_arbitor()
-    print(f'The number of gem5 simulations is {len(all_commands)}')
-    # print(all_commands)
-
-    
+    num_cmd = len(all_commands)
+    print(f'The number of gem5 simulations is {num_cmd}')
+    num_par = int(num_cmd / 4) + 1
+    run_gem5_sim(all_commands[0:num_par])
+    # run_gem5_sim(all_commands[num_par:num_par * 2])
+    # run_gem5_sim(all_commands[num_par * 2:num_par * 3])
+    # run_gem5_sim(all_commands[num_par * 3:])

@@ -127,7 +127,7 @@ def cache_partition():
                 command += "    --l2_size=" + l2 + " --l2_assoc=16 \\\n"
                 command += "    --mem-size=" + mem_size + " --mem-type=DDR3_1600_8x8" + " --mem-channels=2 --mem-ranks=2 \\\n"
                 command += "    --fast-forward=" + str(fast_forward_ins) + " \\\n"
-                command += "    --abs-max-tick=" + str(simulated_ticks) + " \\\n"
+                command += "    --rel-max-tick=" + str(simulated_ticks) + " \\\n"
                 command += "    > " + results_dir + "/stdout_" + temp + ".out \\\n"
                 command += "    2> " + stderr_dir + "/stderr_" + temp + ".out"
 
@@ -161,7 +161,7 @@ def bus_arbitor():
             command += "    --l2_size=4MB --l2_assoc=16 \\\n"
             command += "    --mem-size=" + mem_size + " --mem-type=DDR3_1600_8x8" + " --mem-channels=2 --mem-ranks=2 \\\n"
             command += "    --fast-forward=" + str(fast_forward_ins) + " \\\n"
-            command += "    --abs-max-tick=" + str(simulated_ticks) + " \\\n"
+            command += "    --rel-max-tick=" + str(simulated_ticks) + " \\\n"
             command += "    > " + results_dir + "/stdout_" + temp + ".out \\\n"
             command += "    2> " + stderr_dir + "/stderr_" + temp + ".out"
 
@@ -197,7 +197,7 @@ if __name__ == "__main__":
     num_cmd = len(all_commands)
     print(f'The number of gem5 simulations is {num_cmd}')
     num_par = int(num_cmd / 4) + 1
-    run_gem5_sim(all_commands[0:num_par])
+    # run_gem5_sim(all_commands[0:num_par])
     # run_gem5_sim(all_commands[num_par:num_par * 2])
     # run_gem5_sim(all_commands[num_par * 2:num_par * 3])
-    # run_gem5_sim(all_commands[num_par * 3:])
+    run_gem5_sim(all_commands[num_par * 3:])

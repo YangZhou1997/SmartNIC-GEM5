@@ -127,7 +127,7 @@ def cache_partition():
                 command += "    --l2_size=" + l2 + " --l2_assoc=16 \\\n"
                 command += "    --mem-size=" + mem_size + " --mem-type=DDR3_1600_8x8" + " --mem-channels=2 --mem-ranks=2 \\\n"
                 command += "    --fast-forward=" + str(fast_forward_ins) + " \\\n"
-                command += "    --abs-max-tick=" + str(simulated_ticks) + " \\\n"
+                command += "    --rel-max-tick=" + str(simulated_ticks) + " \\\n"
                 command += "    > " + results_dir + "/stdout_" + temp + ".out \\\n"
                 command += "    2> " + stderr_dir + "/stderr_" + temp + ".out"
 
@@ -161,7 +161,7 @@ def bus_arbitor():
             command += "    --l2_size=4MB --l2_assoc=16 \\\n"
             command += "    --mem-size=" + mem_size + " --mem-type=DDR3_1600_8x8" + " --mem-channels=2 --mem-ranks=2 \\\n"
             command += "    --fast-forward=" + str(fast_forward_ins) + " \\\n"
-            command += "    --abs-max-tick=" + str(simulated_ticks) + " \\\n"
+            command += "    --rel-max-tick=" + str(simulated_ticks) + " \\\n"
             command += "    > " + results_dir + "/stdout_" + temp + ".out \\\n"
             command += "    2> " + stderr_dir + "/stderr_" + temp + ".out"
 

@@ -174,11 +174,12 @@ def bus_arbitor():
 
 def exe_gem5_sim(cmd_line):
     try:
+        print(f'{threading.currentThread().getName()} running: {cmd_line}', flush=True)
         os.popen(cmd_line).read()
-        print(f'{threading.currentThread().getName()} okay: {cmd_line}')
+        print(f'{threading.currentThread().getName()} okay: {cmd_line}', flush=True)
         return f'okay: {cmd_line}'
     except Exception:
-        print(f'{threading.currentThread().getName()} fails: {cmd_line}')
+        print(f'{threading.currentThread().getName()} fails: {cmd_line}', flush=True)
         return f'fails: {cmd_line}'
 
 def run_gem5_sim(commands):

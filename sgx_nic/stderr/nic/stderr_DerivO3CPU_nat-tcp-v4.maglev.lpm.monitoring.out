@@ -135,3 +135,14 @@ warn: mremapping to new vaddr 0x3ffce6c000-0x3ffe66d000, adding 12582912
 warn: returning 0x3ffce6c000 as start
 warn: mremapping to new vaddr 0x3ffce6c000-0x3ffe66d000, adding 12582912
 warn: returning 0x3ffce6c000 as start
+info: Entering event queue @ 615071530977.  Starting simulation...
+warn: ClockedObject: Already in the requested power state, request ignored
+warn: User mode does not have SPSR
+warn: User mode does not have SPSR
+warn: User mode does not have SPSR
+warn: User mode does not have SPSR
+warn: User mode does not have SPSR
+warn: User mode does not have SPSR
+warn: User mode does not have SPSR
+warn: User mode does not have SPSR
+info: Entering event queue @ 615071531394.  Starting simulation...

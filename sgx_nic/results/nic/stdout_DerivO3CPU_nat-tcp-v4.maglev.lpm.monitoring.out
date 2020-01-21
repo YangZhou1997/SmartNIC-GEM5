@@ -102,3 +102,22 @@ maglev packets processed: 1048576
 lpm packets processed: 1376256
 monitoring packets processed: 1114112
 lpm packets processed: 1441792
+nat-tcp-v4 packets processed: 983040
+maglev packets processed: 1114112
+lpm packets processed: 1507328
+Switched CPUS @ tick 615071530977
+switching cpus
+**** REAL SIMULATION ****
+monitoring packets processed: 1179648
+nat-tcp-v4 packets processed: 1048576
+maglev packets processed: 1179648
+lpm packets processed: 1572864
+monitoring packets processed: 1245184
+lpm packets processed: 1638400
+nat-tcp-v4 packets processed: 1114112
+maglev packets processed: 1245184
+lpm packets processed: 1703936
+monitoring packets processed: 1310720
+nat-tcp-v4 packets processed: 1179648
+lpm packets processed: 1769472
+Exiting @ tick 655278022959 because user interrupt received

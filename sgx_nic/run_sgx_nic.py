@@ -69,14 +69,13 @@ trillion = 1000000000000
 # once any nf reaches this number of ins, gem5 will enter real simulation. 
 # for non-dpi nfs, this equals to around 5 trillion
 # for dpi, this equals to around 35 trillion
-ff_factor = 5
-fast_forward_ins = ff_factor * million
+fast_forward_ins = 2 * million
+fast_forward_ins_dpi_with_others = 3 * million
 
-# 5 * trillion -> ticks of non-dpi nf processing 1 million packets
-# 35 * trillion -> ticks of dpi nf processing 1 million packets
-# 40 * trillion: the benchmarking time.
-final_ticks = ff_factor * 5 * trillion + 40 * trillion
-final_ticks_dpi = ff_factor * 35 * trillion + 40 * trillion
+# 0.5 * trillion -> ticks of non-dpi nf processing 1 million packets
+# 3.5 * trillion -> ticks of dpi nf processing 1 million packets
+# 5.0 * trillion: the benchmarking time.
+final_ticks = int(5.0 * trillion)
 
 
 singleprog = nfinvoke
@@ -137,11 +136,8 @@ def cache_partition():
                 command += "    --caches --l2cache \\\n"
                 command += "    --l2_size=" + l2 + " --l2_assoc=16 \\\n"
                 command += "    --mem-size=" + mem_size + " --mem-type=DDR3_1600_8x8" + " --mem-channels=2 --mem-ranks=2 \\\n"
-                command += "    --fast-forward=" + str(fast_forward_ins) + " \\\n"
-                if nf != 'dpi': 
-                    command += "    --rel-max-tick=" + str(final_ticks) + " \\\n"
-                else:
-                    command += "    --rel-max-tick=" + str(final_ticks_dpi) + " \\\n"
+                command += "    --fast-forward=" + str(fast_forward_ins) + " \\\n"    
+                command += "    --rel-max-tick=" + str(final_ticks) + " \\\n"
                 command += "    > " + results_dir + "/stdout_" + temp + ".out \\\n"
                 command += "    2> " + stderr_dir + "/stderr_" + temp + ".out"
 
@@ -174,11 +170,11 @@ def bus_arbitor():
             command += "    --caches --l2cache \\\n"
             command += "    --l2_size=4MB --l2_assoc=16 \\\n"
             command += "    --mem-size=" + mem_size + " --mem-type=DDR3_1600_8x8" + " --mem-channels=2 --mem-ranks=2 \\\n"
-            command += "    --fast-forward=" + str(fast_forward_ins) + " \\\n"
-            if 'dpi' not in nf_set:
-                command += "    --rel-max-tick=" + str(final_ticks) + " \\\n"
+            if 'dpi' in nf_set:
+                command += "    --fast-forward=" + str(fast_forward_ins_dpi_with_others) + " \\\n"
             else:
-                command += "    --rel-max-tick=" + str(final_ticks_dpi) + " \\\n"
+                command += "    --fast-forward=" + str(fast_forward_ins) + " \\\n"
+            command += "    --rel-max-tick=" + str(final_ticks) + " \\\n"
             command += "    > " + results_dir + "/stdout_" + temp + ".out \\\n"
             command += "    2> " + stderr_dir + "/stderr_" + temp + ".out"
 

@@ -69,11 +69,14 @@ trillion = 1000000000000
 # once any nf reaches this number of ins, gem5 will enter real simulation. 
 # for non-dpi nfs, this equals to around 5 trillion
 # for dpi, this equals to around 35 trillion
-fast_forward_ins = 2 * million
+ff_factor = 5
+fast_forward_ins = ff_factor * million
 
-# 40 trillion: the number of ticks doing packet processing.
-final_ticks = 5 * trillion + 40 * trillion
-final_ticks_dpi = 35 * trillion + 40 * trillion
+# 5 * trillion -> ticks of non-dpi nf processing 1 million packets
+# 35 * trillion -> ticks of dpi nf processing 1 million packets
+# 40 * trillion: the benchmarking time.
+final_ticks = ff_factor * 5 * trillion + 40 * trillion
+final_ticks_dpi = ff_factor * 35 * trillion + 40 * trillion
 
 
 singleprog = nfinvoke

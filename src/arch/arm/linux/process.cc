@@ -670,7 +670,7 @@ static SyscallDesc syscallDescs64[] = {
     /*  121 */ SyscallDesc("sched_getparam", unimplementedFunc),
     /*  122 */ SyscallDesc("sched_setaffinity", unimplementedFunc),
     /*  123 */ SyscallDesc("sched_getaffinity", ignoreFunc),
-    /*  124 */ SyscallDesc("sched_yield", unimplementedFunc),
+    /*  124 */ SyscallDesc("sched_yield", ignoreFunc),
     /*  125 */ SyscallDesc("sched_get_priority_max", unimplementedFunc),
     /*  126 */ SyscallDesc("sched_get_priority_min", unimplementedFunc),
     /*  127 */ SyscallDesc("sched_rr_get_interval", unimplementedFunc),

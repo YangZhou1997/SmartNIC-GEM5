@@ -71,7 +71,7 @@ from common.cpu2000 import *
 DPI_THREAD_NUM = 16
 BASE_DIR = '/users/yangzhou/NetBricks-GEM5/target/aarch64-unknown-linux-gnu/release/'
 
-NFS = ['acl-fw', 'dpi', 'nat-tcp-v4', 'maglev', 'lpm', 'monitoring', 'spmc', 'helloworld']
+NFS = ['acl-fw', 'dpi', 'nat-tcp-v4', 'maglev', 'lpm', 'monitoring', 'spmc', 'helloworld', 'dpi-queue']
 
 def get_processes(options):
     """Interprets provided options and returns a list of processes"""
@@ -119,10 +119,7 @@ def get_processes(options):
 
         multiprocesses[wrkld] = process
 
-        if wrkld == 'dpi':
-            core_set = [i for i in range(idx, idx + DPI_THREAD_NUM + 1)]
-            idx += DPI_THREAD_NUM + 1
-        elif wrkld == 'spmc':
+        if wrkld in ['dpi', 'spmc', 'dpi-queue']:
             core_set = [i for i in range(idx, idx + DPI_THREAD_NUM + 1)]
             idx += DPI_THREAD_NUM + 1
         else:
@@ -204,10 +201,13 @@ for nf in NFS:
 MemClass = Simulation.setMemClass(options)
 system.membus = SystemXBar()
 system.system_port = system.membus.slave
-if 'dpi' in nf_core_mapping or 'spmc' in nf_core_mapping:
+
+if 'dpi' in nf_core_mapping or 'spmc' in nf_core_mapping or 'dpi-queue' in nf_core_mapping:
     temp_core_set = []
     if 'dpi' in nf_core_mapping:
         temp_core_set.extend(nf_core_mapping['dpi'][1:])
+    if 'dpi-queue' in nf_core_mapping:
+        temp_core_set.extend(nf_core_mapping['dpi-queue'][1:])
     if 'spmc' in nf_core_mapping:
         temp_core_set.extend(nf_core_mapping['spmc'][1:])
     CacheConfig.config_cache(options, system, temp_core_set)
@@ -219,6 +219,19 @@ config_filesystem(system, options)
 # reconfig the dpi hardware thread l1 dcache to make it connect to the memory bus directly;
 if 'dpi' in nf_core_mapping:
     core_set = nf_core_mapping['dpi']
+    for i, core_id in enumerate(core_set):
+        if i == 0:
+            continue
+        system.cpu[core_id].icache.mem_side = system.membus.slave
+        system.cpu[core_id].dcache.mem_side = system.membus.slave
+        system.cpu[core_id].itb.walker.port = system.membus.slave
+        system.cpu[core_id].dtb.walker.port = system.membus.slave
+        # print(system.cpu[core_id].icache.mem_side, system.cpu[core_id].dcache.mem_side)
+        system.cpu[core_id].dcache.size = "8kB"
+        system.cpu[core_id].dcache.assoc = 1
+
+if 'dpi-queue' in nf_core_mapping:
+    core_set = nf_core_mapping['dpi-queue']
     for i, core_id in enumerate(core_set):
         if i == 0:
             continue

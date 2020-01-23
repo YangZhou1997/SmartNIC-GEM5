@@ -12,7 +12,7 @@ results_dir = gem5home + "/results"
 stdout_dir = gem5home + "/stdout"
 stderr_dir = gem5home + "/stderr"
 
-nfinvoke = ['acl-fw', 'dpi', 'nat-tcp-v4', 'maglev', 'lpm', 'monitoring']
+nfinvoke = ['acl-fw', 'dpi-queue', 'nat-tcp-v4', 'maglev', 'lpm', 'monitoring']
 
 # Available BaseCPU classes:
 #         O3_ARM_v7a_3
@@ -63,19 +63,15 @@ cpus = ['TimingSimpleCPU', 'DerivO3CPU']
 # Small gain beyond half cache: gcc h264ref gobmk hmmer sjeng
 
 mem_size = '128GB'
+
 million = 1000000000
 trillion = 1000000000000
 # 1 million: the number of ins spent on loading traces
 # once any nf reaches this number of ins, gem5 will enter real simulation. 
-# for non-dpi nfs, this equals to around 5 trillion
-# for dpi, this equals to around 35 trillion
 fast_forward_ins = 2 * million
-fast_forward_ins_dpi_with_others = 3 * million
 
-# 0.5 * trillion -> ticks of non-dpi nf processing 1 million packets
-# 3.5 * trillion -> ticks of dpi nf processing 1 million packets
-# 5.0 * trillion: the benchmarking time.
-final_ticks = int(5.0 * trillion)
+# 5 * trillion: the benchmarking time.
+final_ticks = 5 * trillion
 
 
 singleprog = nfinvoke
@@ -170,10 +166,7 @@ def bus_arbitor():
             command += "    --caches --l2cache \\\n"
             command += "    --l2_size=4MB --l2_assoc=16 \\\n"
             command += "    --mem-size=" + mem_size + " --mem-type=DDR3_1600_8x8" + " --mem-channels=2 --mem-ranks=2 \\\n"
-            if 'dpi' in nf_set:
-                command += "    --fast-forward=" + str(fast_forward_ins_dpi_with_others) + " \\\n"
-            else:
-                command += "    --fast-forward=" + str(fast_forward_ins) + " \\\n"
+            command += "    --fast-forward=" + str(fast_forward_ins) + " \\\n"
             command += "    --rel-max-tick=" + str(final_ticks) + " \\\n"
             command += "    > " + results_dir + "/stdout_" + temp + ".out \\\n"
             command += "    2> " + stderr_dir + "/stderr_" + temp + ".out"

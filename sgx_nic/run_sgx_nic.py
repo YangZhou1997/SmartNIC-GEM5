@@ -62,7 +62,7 @@ cpus = ['TimingSimpleCPU', 'DerivO3CPU']
 # Large gain beyond half cache: bzip2 mcf xalan soplex
 # Small gain beyond half cache: gcc h264ref gobmk hmmer sjeng
 
-mem_size = '256GB'
+mem_size = '128GB'
 
 million = 1000000000
 trillion = 1000000000000
@@ -119,7 +119,7 @@ def cache_partition():
                 bash_filename = f'{scriptgen_dir}/run_{temp}.sh'
                 script = open(bash_filename, "w")
                 command = "#!/bin/bash\n"
-                command += "build/ARM/gem5.opt \\\n"
+                command += "build/ARM/gem5.fast \\\n"
                 command += "    --remote-gdb-port=0 \\\n"
                 command += "    --outdir=/users/yangzhou/gem5/sgx_nic/m5out/" + temp + " \\\n"
                 command += "    --stats-file=" + temp + "_stats.txt \\\n"
@@ -153,7 +153,7 @@ def bus_arbitor():
             bash_filename = f'{scriptgen_dir}/run_{temp}.sh'
             script = open(bash_filename, "w")
             command = "#!/bin/bash\n"
-            command += "build/ARM/gem5.opt \\\n"
+            command += "build/ARM/gem5.fast \\\n"
             command += "    --remote-gdb-port=0 \\\n"
             command += "    --outdir=/users/yangzhou/gem5/sgx_nic/m5out/" + temp + " \\\n"
             command += "    --stats-file=" + temp + "_stats.txt \\\n"
@@ -203,9 +203,9 @@ if __name__ == "__main__":
     num_cmd = len(all_commands)
     print(f'The number of gem5 simulations is {num_cmd}')
     num_par = int(num_cmd / 6) + 1
-    # run_gem5_sim(all_commands[0:num_par])
+    run_gem5_sim(all_commands[0:num_par])
     # run_gem5_sim(all_commands[num_par:num_par * 2])
     # run_gem5_sim(all_commands[num_par * 2:num_par * 3])
-    run_gem5_sim(all_commands[num_par * 3:num_par * 4])
+    # run_gem5_sim(all_commands[num_par * 3:num_par * 4])
     # run_gem5_sim(all_commands[num_par * 4:num_par * 5])
     # run_gem5_sim(all_commands[num_par * 5:])

@@ -62,7 +62,7 @@ cpus = ['TimingSimpleCPU', 'DerivO3CPU']
 # Large gain beyond half cache: bzip2 mcf xalan soplex
 # Small gain beyond half cache: gcc h264ref gobmk hmmer sjeng
 
-mem_size = '128GB'
+mem_size = '256GB'
 
 million = 1000000000
 trillion = 1000000000000
@@ -203,9 +203,9 @@ if __name__ == "__main__":
     num_cmd = len(all_commands)
     print(f'The number of gem5 simulations is {num_cmd}')
     num_par = int(num_cmd / 6) + 1
-    run_gem5_sim(all_commands[0:num_par])
+    # run_gem5_sim(all_commands[0:num_par])
     # run_gem5_sim(all_commands[num_par:num_par * 2])
     # run_gem5_sim(all_commands[num_par * 2:num_par * 3])
-    # run_gem5_sim(all_commands[num_par * 3:num_par * 4])
+    run_gem5_sim(all_commands[num_par * 3:num_par * 4])
     # run_gem5_sim(all_commands[num_par * 4:num_par * 5])
     # run_gem5_sim(all_commands[num_par * 5:])

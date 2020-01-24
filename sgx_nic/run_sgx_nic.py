@@ -71,7 +71,7 @@ trillion = 1000000000000
 fast_forward_ins = 2 * million
 
 # 5 * trillion: the benchmarking time.
-final_ticks = 5 * trillion
+final_ticks = 3 * trillion
 
 
 singleprog = nfinvoke
@@ -105,7 +105,7 @@ if not os.path.exists(stdout_dir):
 if not os.path.exists(stderr_dir):
     os.makedirs(stderr_dir)
 
-l2_size = ['4MB', '2MB', '1MB', '512kB', '256kB']
+l2_size = ['4MB', '2MB', '1MB', '512kB', '256kB', '128kB', '64kB', '32kB', '16kB', '8kB', '4kB']
 
 all_commands = []
 
@@ -119,7 +119,7 @@ def cache_partition():
                 bash_filename = f'{scriptgen_dir}/run_{temp}.sh'
                 script = open(bash_filename, "w")
                 command = "#!/bin/bash\n"
-                command += "build/ARM/gem5.fast \\\n"
+                command += "build/ARM/gem5.opt \\\n"
                 command += "    --remote-gdb-port=0 \\\n"
                 command += "    --outdir=/users/yangzhou/gem5/sgx_nic/m5out/" + temp + " \\\n"
                 command += "    --stats-file=" + temp + "_stats.txt \\\n"
@@ -153,7 +153,7 @@ def bus_arbitor():
             bash_filename = f'{scriptgen_dir}/run_{temp}.sh'
             script = open(bash_filename, "w")
             command = "#!/bin/bash\n"
-            command += "build/ARM/gem5.fast \\\n"
+            command += "build/ARM/gem5.opt \\\n"
             command += "    --remote-gdb-port=0 \\\n"
             command += "    --outdir=/users/yangzhou/gem5/sgx_nic/m5out/" + temp + " \\\n"
             command += "    --stats-file=" + temp + "_stats.txt \\\n"
@@ -202,8 +202,10 @@ if __name__ == "__main__":
     bus_arbitor()
     num_cmd = len(all_commands)
     print(f'The number of gem5 simulations is {num_cmd}')
-    num_par = int(num_cmd / 4) + 1
+    num_par = int(num_cmd / 6) + 1
     run_gem5_sim(all_commands[0:num_par])
     # run_gem5_sim(all_commands[num_par:num_par * 2])
     # run_gem5_sim(all_commands[num_par * 2:num_par * 3])
-    # run_gem5_sim(all_commands[num_par * 3:])
+    # run_gem5_sim(all_commands[num_par * 3:num_par * 4])
+    # run_gem5_sim(all_commands[num_par * 4:num_par * 5])
+    # run_gem5_sim(all_commands[num_par * 5:])

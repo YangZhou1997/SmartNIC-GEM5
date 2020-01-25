@@ -71,7 +71,7 @@ trillion = 1000000000000
 fast_forward_ins = 2 * million
 
 # 5 * trillion: the benchmarking time.
-final_ticks = 3 * trillion
+final_ticks = 2 * trillion
 
 
 singleprog = nfinvoke

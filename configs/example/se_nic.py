@@ -201,7 +201,7 @@ for nf in NFS:
 MemClass = Simulation.setMemClass(options)
 system.membus = SystemXBar()
 system.system_port = system.membus.slave
-system.mmap_using_noreserve = True
+# system.mmap_using_noreserve = True
 
 if 'dpi' in nf_core_mapping or 'spmc' in nf_core_mapping or 'dpi-queue' in nf_core_mapping:
     temp_core_set = []

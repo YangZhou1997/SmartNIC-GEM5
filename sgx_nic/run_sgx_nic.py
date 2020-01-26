@@ -62,7 +62,7 @@ cpus = ['TimingSimpleCPU', 'DerivO3CPU']
 # Large gain beyond half cache: bzip2 mcf xalan soplex
 # Small gain beyond half cache: gcc h264ref gobmk hmmer sjeng
 
-mem_size = '512GB'
+mem_size = '192GB'
 
 million = 1000000000
 trillion = 1000000000000

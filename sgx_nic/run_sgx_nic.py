@@ -66,12 +66,12 @@ mem_size = '192GB'
 
 million = 1000000000
 trillion = 1000000000000
-# 1 million: the number of ins spent on loading traces
 # once any nf reaches this number of ins, gem5 will enter real simulation. 
-fast_forward_ins = 2 * million
+# acl-fw warmup: 400k->5 Trillion ticks->10million ins
+fast_forward_ins = 3 * million
 
-# 5 * trillion: the benchmarking time.
-final_ticks = 2 * trillion
+# 1 * trillion: the benchmarking time.
+final_ticks = int(2.5 * trillion)
 
 
 singleprog = nfinvoke

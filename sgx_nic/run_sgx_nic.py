@@ -68,10 +68,10 @@ million = 1000000000
 trillion = 1000000000000
 # once any nf reaches this number of ins, gem5 will enter real simulation. 
 # acl-fw warmup: 400k->5 Trillion ticks->10million ins
-fast_forward_ins = 3 * million
+fast_forward_ins = 2 * million
 
 # 1 * trillion: the benchmarking time.
-final_ticks = int(2.5 * trillion)
+final_ticks = int(2 * trillion)
 
 
 singleprog = nfinvoke
